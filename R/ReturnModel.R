@@ -1,6 +1,6 @@
 #' Performs the DIC-tau_g procedure and returns the posterior quantities of the optimal model.
 #'
-#' Performs the DIC-tau_g procedure by first running the function SCRSELECTRUN with 60% burnin, which performs SVSS on two disperse starting values for beta1,beta2,beta3. Afterwards, the function DICTAUG is used to extract the DIC values for unique models visited by the grid search and the optimal model is determined as the one with the lowest DIC which is the most parsimonius. After the optimal model is determined, one final MCMC is performed to obtain posterior beta1,beta2 and beta3 quantities for this model, returning summary values for each hazard.
+#' Performs the DIC-tau_g procedure by first running the function SCRSELECTRUN with 60 percent burnin, which performs SVSS on two disperse starting values for beta1,beta2,beta3. Afterwards, the function DICTAUG is used to extract the DIC values for unique models visited by the grid search and the optimal model is determined as the one with the lowest DIC which is the most parsimonius. After the optimal model is determined, one final MCMC is performed to obtain posterior beta1,beta2 and beta3 quantities for this model, returning summary values for each hazard.
 #'
 #' @importFrom graphics par plot
 #' @importFrom stats dgamma dnorm dpois rgamma rnorm runif median quantile
@@ -25,6 +25,12 @@
 #' @param inc Number of variables left out of selection.
 #' @param Path Where to save posterior coefficient samples for the optimal model.
 #' @return Returns the optimal model determined by the DIC-Tau_g procedure and it's DIC along with summaries of these posterior quantities. Additionally, this function saves these posterior samples to a desired path.
+#'
+#'  @references
+#' [1] Lee, K. H., Haneuse, S., Schrag, D. and Dominici, F. (2015), Bayesian semi-parametric analysis of semi-competing risks data: investigating hospital readmission after a pancreatic cancer diagnosis. Journal of the Royal Statistical Society: Series C (Applied Statistics), 64: 253-273. doi: 10.1111/rssc.12078
+#' [2] Chapple, A.C., Vannucci, M., Thall, P.F., Lin, S.(2017), Bayesian Variable selection for a semi-competing risks model with three hazard functions. Journal of Computational Statistics & Data Analysis, Volume 112, August 2017, Pages 170-185
+#'
+#'
 #' @examples
 #' ####Randomly Generate Semicompeting Risks Data
 #' ####Generates random patient time, indicator and covariates.
@@ -983,7 +989,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
       Hazard 1: Non-terminal Event
 
-      ")
+")
 
   print(MED1)
   print(QL1)
@@ -993,7 +999,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
       Hazard 2: Death Before Non-terminal Event
 
-      ")
+")
 
 
   print(MED2)
@@ -1005,7 +1011,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
       Hazard 3: Death After Non-terminal Event
 
-      ")
+")
 
 
   print(MED3)

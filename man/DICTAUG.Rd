@@ -46,6 +46,10 @@ DICTAUG(PCT1, PCT2, PCT3, COV, Y1, Y2, I1, I2, s1, lam1, s2, lam2, s3, lam3,
 }
 \value{
 Returns a list of size 18 containing 18x18 matrices of DIC values and skipped entries.
+
+ @references
+[1] Lee, K. H., Haneuse, S., Schrag, D. and Dominici, F. (2015), Bayesian semi-parametric analysis of semi-competing risks data: investigating hospital readmission after a pancreatic cancer diagnosis. Journal of the Royal Statistical Society: Series C (Applied Statistics), 64: 253-273. doi: 10.1111/rssc.12078
+[2] Chapple, A.C., Vannucci, M., Thall, P.F., Lin, S.(2017), Bayesian Variable selection for a semi-competing risks model with three hazard functions. Journal of Computational Statistics & Data Analysis, Volume 112, August 2017, Pages 170-185
 }
 \description{
 Performs a grid search over the marginal posterior probabilities of inclusion and returns a list of DIC values corresponding to each grid point. This is used in the ReturnModel function.
@@ -81,4 +85,3 @@ B=4
 inc=2
 DICTAUG(PCT1,PCT2,PCT3,X,Y1,Y2,I1,I2,s1,lam1,s2,lam2,s3,lam3,gam,c,B,inc)
 }
-

@@ -1,5 +1,4 @@
 #' Performs Bayesian Variable Selection on the covariates in a semi-competing risks model
-#'
 #' @importFrom graphics par plot
 #' @importFrom stats dgamma dnorm dpois rgamma rnorm runif
 #' @importFrom utils write.table
@@ -17,7 +16,6 @@
 #'    J1max, J2max, J3max - Maximum number of split points allowed (must be whole number).
 #'    J1, J2, J3- Starting number of split points. w, psi1- hyperparameters on theta^{-1}. cep=Tuning Parameter for theta^{-1} sampler.
 #'    epstart-Starting value for theta^{-1}. cl1,cl2,cl3-Tuning parameters for log baseline hazard height sampler.
-#'
 #' @param beta1start Starting Values for Beta1
 #' @param beta2start Starting Values for Beta2
 #' @param beta3start Starting Values for Beta3
@@ -26,6 +24,11 @@
 #' @param Path Where to save posterior samples
 #' @param burn  percent of posterior sample to burn in (burn*B must be a whole number)
 #' @return Returns marginal posterior probability of inclusion (post burn-in) for each hazard function along with acceptance rates for the various Metropolis-Hastings (and Metropolis-Hastings-Green) samplers.
+#'
+#' @references
+#' [1] Lee, K. H., Haneuse, S., Schrag, D. and Dominici, F. (2015), Bayesian semi-parametric analysis of semi-competing risks data: investigating hospital readmission after a pancreatic cancer diagnosis. Journal of the Royal Statistical Society: Series C (Applied Statistics), 64: 253-273. doi: 10.1111/rssc.12078
+#' [2] Chapple, A.C., Vannucci, M., Thall, P.F., Lin, S.(2017), Bayesian Variable selection for a semi-competing risks model with three hazard functions. Journal of Computational Statistics & Data Analysis, Volume 112, August 2017, Pages 170-185
+#'
 #'
 #' @examples
 #' ####Randomly Generate Semicompeting Risks Data
@@ -95,9 +98,7 @@
 #' ###Number of variables to exclude from selection and burnin percent
 #'inc=2
 #'burn=.1
-#' SCRSELECT(Y1,I1,Y2,I2,X,hyper,beta1start,beta2start,beta3start,B,inc,Path,burn)
-#' @references
-#' [1] Lee, K. H., Haneuse, S., Schrag, D. and Dominici, F. (2015), Bayesian semiparametric analysis of semicompeting risks data: investigating hospital readmission after a pancreatic cancer diagnosis. Journal of the Royal Statistical Society: Series C (Applied Statistics), 64: 253-273. doi: 10.1111/rssc.12078
+#'SCRSELECT(Y1,I1,Y2,I2,X,hyper,beta1start,beta2start,beta3start,B,inc,Path,burn)
 #' @export
 SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3start,B,inc,Path,burn){
 
@@ -10171,16 +10172,6 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
       ################End Samplers
       cat("
-
-
-
-
-          ", "
-
-
-
-          ", "
-
 
           ", "Posterior Inclusion Probabilities after half Burnin", "
 

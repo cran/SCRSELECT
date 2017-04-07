@@ -118,4 +118,3 @@ SCRSELECT(Y1,I1,Y2,I2,X,hyper,beta1start,beta2start,beta3start,B,inc,Path,burn)
 \references{
 [1] Lee, K. H., Haneuse, S., Schrag, D. and Dominici, F. (2015), Bayesian semiparametric analysis of semicompeting risks data: investigating hospital readmission after a pancreatic cancer diagnosis. Journal of the Royal Statistical Society: Series C (Applied Statistics), 64: 253-273. doi: 10.1111/rssc.12078
 }
-

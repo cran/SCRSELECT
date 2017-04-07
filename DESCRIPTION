@@ -1,7 +1,7 @@
 Package: SCRSELECT
 Title: Performs Bayesian Variable Selection on the Covariates in a
         Semi-Competing Risks Model
-Version: 1.1-0
+Version: 1.1-1
 Authors@R: person("Andrew", "Chapple", email = "Andrew.G.Chapple@rice.edu", role = c("aut", "cre"))
 Description: Contains four functions used in the DIC-tau_g procedure. SCRSELECT() and SCRSELECTRUN() uses Stochastic Search Variable Selection to select important
     covariates in the three hazard functions of a semi-competing risks model. These functions perform the Gibbs sampler for variable selection and a Metropolis-Hastings-Green sampler for the number of split points and parameters for the
@@ -12,10 +12,10 @@ Description: Contains four functions used in the DIC-tau_g procedure. SCRSELECT(
 Depends: R (>= 3.2.2), mvtnorm
 License: GPL-2
 LazyData: true
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2016-09-28 13:00:58 UTC; Andrew
+Packaged: 2017-04-07 15:19:57 UTC; Andrew
 Author: Andrew Chapple [aut, cre]
 Maintainer: Andrew Chapple <Andrew.G.Chapple@rice.edu>
 Repository: CRAN
-Date/Publication: 2016-09-28 21:32:49
+Date/Publication: 2017-04-07 17:01:19 UTC
