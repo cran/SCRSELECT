@@ -50,6 +50,7 @@ Returns a list of size 18 containing 18x18 matrices of DIC values and skipped en
  @references
 [1] Lee, K. H., Haneuse, S., Schrag, D. and Dominici, F. (2015), Bayesian semi-parametric analysis of semi-competing risks data: investigating hospital readmission after a pancreatic cancer diagnosis. Journal of the Royal Statistical Society: Series C (Applied Statistics), 64: 253-273. doi: 10.1111/rssc.12078
 [2] Chapple, A.C., Vannucci, M., Thall, P.F., Lin, S.(2017), Bayesian Variable selection for a semi-competing risks model with three hazard functions. Journal of Computational Statistics & Data Analysis, Volume 112, August 2017, Pages 170-185
+[3] https://adventuresinstatistics.wordpress.com/2017/04/10/package-scrselect-using-returnmodel/
 }
 \description{
 Performs a grid search over the marginal posterior probabilities of inclusion and returns a list of DIC values corresponding to each grid point. This is used in the ReturnModel function.
