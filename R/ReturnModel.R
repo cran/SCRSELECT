@@ -446,18 +446,11 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   spot1=spot1[!is.na(spot1)]
 
 
-  minDIC1=min(minDIC)
-
-  for(j in 1:length(spot1)){
-    if(Vec[taumark[spot1[j]]]==minDIC1){
-      spot2=spot1[j]
-    }
-
-  }
 
 
 
-  tauG=c(tau1[spot2],tau12[spot2],tau13[spot2])
+
+  tauG=c(tau1[spot1],tau12[spot1],tau13[spot1])
 
 
   cat("Grid Search Finished
