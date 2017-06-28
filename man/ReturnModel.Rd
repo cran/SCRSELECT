@@ -49,6 +49,7 @@ Performs the DIC-tau_g procedure by first running the function SCRSELECTRUN with
 }
 \examples{
 ####Randomly Generate Semicompeting Risks Data
+set.seed(1)
 ####Generates random patient time, indicator and covariates.
 n=100
 Y1=runif(n,0,100)

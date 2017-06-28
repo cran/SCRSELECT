@@ -58,6 +58,7 @@ Performs a grid search over the marginal posterior probabilities of inclusion an
 \examples{
 ####Randomly Generate Semicompeting Risks Data
 ####Generates random patient time, indicator and covariates.
+set.seed(1)
 n=100
 Y1=runif(n,0,100)
 I1=rbinom(n,1,.5)

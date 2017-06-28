@@ -33,6 +33,7 @@
 #'
 #' @examples
 #' ####Randomly Generate Semicompeting Risks Data
+#' set.seed(1)
 #' ####Generates random patient time, indicator and covariates.
 #' n=100
 #' Y1=runif(n,0,100)
@@ -126,7 +127,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
       ")
 
-  beta1start=c(rep(0,ncol(X)-inc),-1,-1)
+  beta1start=c(rep(0,ncol(X)-inc),rep(-1,inc))
   beta2start=beta1start
   beta3start=beta1start
   z2=SCRSELECTRUN(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3start,B,inc,burn)
@@ -551,6 +552,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
 
 
+  if(inc>0){
 
   Include=(ncol(COV)-Inc+1):ncol(COV)
 
@@ -559,7 +561,13 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   COV2=as.matrix(COV[,c(eta2,Include)])
   COV3=as.matrix(COV[,c(eta3,Include)])
 
+  }else{
+    COV1=as.matrix(COV[,eta1])
+    COV2=as.matrix(COV[,eta2])
+    COV3=as.matrix(COV[,eta3])
 
+
+}
   p1=ncol(COV1)
   p2=ncol(COV2)
   p3=ncol(COV3)
@@ -691,53 +699,96 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
   iter=0
 
+
   for(b in 2:B){
 
     iter="haz1"
 
 
     ##Print iteration
-    if(b%%10000==0){cat(b, "iterations ")}
 
     beta1[b,]=beta1[b-1,]
 
-    for(m in 1:p1){
+    if(p1>1){
+
+      for(m in 1:p1){
 
 
-      V1 = Sigma1[m,m]
-      V2 = as.matrix(Sigma1[-m,-m])
-      V12 = as.matrix(Sigma1[m,-m])
-      thetab=beta1[b,]
-      thetano = as.matrix(thetab[-m])
-      meannew = t(V12)%*%solve(V2)%*%thetano
-      varnew = sqrt(V1 - t(V12)%*%solve(V2)%*%V12)
-      ##################
+        V1 = Sigma1[m,m]
+        V2 = as.matrix(Sigma1[-m,-m])
+        V12 = as.matrix(Sigma1[m,-m])
+        thetab=beta1[b,]
+        thetano = as.matrix(thetab[-m])
+        meannew = t(V12)%*%solve(V2)%*%thetano
+        varnew = sqrt(V1 - t(V12)%*%solve(V2)%*%V12)
+        ##################
 
-      beta1[b,m]=rnorm(1,meannew,varnew)
+        beta1[b,m]=rnorm(1,meannew,varnew)
 
-      #beta1[b,m]=beta1[b-1,m] + runif(1,-clb,clb)
-      dn=log(dnorm(beta1[b,m],meannew,varnew))
-      ###density old
-      do=log(dnorm(thetab[m],meannew,varnew))
+        #beta1[b,m]=beta1[b-1,m] + runif(1,-clb,clb)
+        dn=log(dnorm(beta1[b,m],meannew,varnew))
+        ###density old
+        do=log(dnorm(thetab[m],meannew,varnew))
 
 
 
-      Likeo=LK1(Y1,Y2,I1,I2,thetab)
+        Likeo=LK1(Y1,Y2,I1,I2,thetab)
 
-      Liken=LK1(Y1,Y2,I1,I2,beta1[b,])
+        Liken=LK1(Y1,Y2,I1,I2,beta1[b,])
 
-      alpha=Liken-Likeo+dn-do
-      U=log(runif(1,0,1))
+        alpha=Liken-Likeo+dn-do
+        U=log(runif(1,0,1))
 
-      if(U>alpha){
-        Indcond1[b,m]=0
-        beta1[b,]=thetab
-      }else{
-        Indcond1[b,m]=1
+        if(U>alpha){
+          Indcond1[b,m]=0
+          beta1[b,]=thetab
+        }else{
+          Indcond1[b,m]=1
+        }
+
       }
 
-    }
 
+
+    }else{
+      for(m in 1:p1){
+
+
+
+        thetab=beta1[b,]
+        meannew = 0
+        varnew = sqrt(Sigma1[m,m])
+        ##################
+
+        beta1[b,m]=rnorm(1,meannew,varnew)
+
+        #beta1[b,m]=beta1[b-1,m] + runif(1,-clb,clb)
+        dn=log(dnorm(beta1[b,m],meannew,varnew))
+        ###density old
+        do=log(dnorm(thetab[m],meannew,varnew))
+
+
+
+        Likeo=LK1(Y1,Y2,I1,I2,thetab)
+
+        Liken=LK1(Y1,Y2,I1,I2,beta1[b,])
+
+        alpha=Liken-Likeo+dn-do
+        U=log(runif(1,0,1))
+
+        if(U>alpha){
+          Indcond1[b,m]=0
+          beta1[b,]=thetab
+        }else{
+          Indcond1[b,m]=1
+        }
+
+      }
+
+
+
+
+    }
     iter="haz2"
 
 
@@ -745,41 +796,77 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
     beta2[b,]=beta2[b-1,]
 
-    for(m in 1:p2){
+
+    if(p2>1){
+      for(m in 1:p2){
 
 
-      V1 = Sigma2[m,m]
-      V2 = as.matrix(Sigma2[-m,-m])
-      V12 = as.matrix(Sigma2[m,-m])
-      thetab=beta2[b,]
-      thetano = as.matrix(thetab[-m])
-      meannew = t(V12)%*%solve(V2)%*%thetano
-      varnew = sqrt(V1 - t(V12)%*%solve(V2)%*%V12)
-      ##################
+        V1 = Sigma2[m,m]
+        V2 = as.matrix(Sigma2[-m,-m])
+        V12 = as.matrix(Sigma2[m,-m])
+        thetab=beta2[b,]
+        thetano = as.matrix(thetab[-m])
+        meannew = t(V12)%*%solve(V2)%*%thetano
+        varnew = sqrt(V1 - t(V12)%*%solve(V2)%*%V12)
+        ##################
 
-      beta2[b,m]=rnorm(1,meannew,varnew)
-      dn=log(dnorm(beta2[b,m],meannew,varnew))
-      ###density old
-      do=log(dnorm(thetab[m],meannew,varnew))
+        beta2[b,m]=rnorm(1,meannew,varnew)
+        dn=log(dnorm(beta2[b,m],meannew,varnew))
+        ###density old
+        do=log(dnorm(thetab[m],meannew,varnew))
 
 
 
-      Likeo=LK2(Y1,Y2,I1,I2,thetab)
+        Likeo=LK2(Y1,Y2,I1,I2,thetab)
 
-      Liken=LK2(Y1,Y2,I1,I2,beta2[b,])
+        Liken=LK2(Y1,Y2,I1,I2,beta2[b,])
 
-      alpha=Liken-Likeo+dn-do
-      U=log(runif(1,0,1))
+        alpha=Liken-Likeo+dn-do
+        U=log(runif(1,0,1))
 
-      if(U>alpha){
-        Indcond2[b,m]=0
-        beta2[b,]=thetab
-      }else{
-        Indcond2[b,m]=1
+        if(U>alpha){
+          Indcond2[b,m]=0
+          beta2[b,]=thetab
+        }else{
+          Indcond2[b,m]=1
+        }
+
+      }
+    }else{
+      for(m in 1:p2){
+
+
+
+        thetab=beta2[b,]
+        meannew = 0
+        varnew = sqrt(Sigma2[m,m])
+        ##################
+
+        beta2[b,m]=rnorm(1,meannew,varnew)
+        dn=log(dnorm(beta2[b,m],meannew,varnew))
+        ###density old
+        do=log(dnorm(thetab[m],meannew,varnew))
+
+
+
+        Likeo=LK2(Y1,Y2,I1,I2,thetab)
+
+        Liken=LK2(Y1,Y2,I1,I2,beta2[b,])
+
+        alpha=Liken-Likeo+dn-do
+        U=log(runif(1,0,1))
+
+        if(U>alpha){
+          Indcond2[b,m]=0
+          beta2[b,]=thetab
+        }else{
+          Indcond2[b,m]=1
+        }
+
       }
 
-    }
 
+    }
 
 
 
@@ -792,45 +879,84 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
     beta3[b,]=beta3[b-1,]
 
-    for(m in 1:p3){
+    if(p3>1){
+
+      for(m in 1:p3){
 
 
-      V1 = Sigma3[m,m]
-      V2 = as.matrix(Sigma3[-m,-m])
-      V12 = as.matrix(Sigma3[m,-m])
-      thetab=beta3[b,]
-      thetano = as.matrix(thetab[-m])
-      meannew = t(V12)%*%solve(V2)%*%thetano
-      varnew = sqrt(V1 - t(V12)%*%solve(V2)%*%V12)
-      ##################
+        V1 = Sigma3[m,m]
+        V2 = as.matrix(Sigma3[-m,-m])
+        V12 = as.matrix(Sigma3[m,-m])
+        thetab=beta3[b,]
+        thetano = as.matrix(thetab[-m])
+        meannew = t(V12)%*%solve(V2)%*%thetano
+        varnew = sqrt(V1 - t(V12)%*%solve(V2)%*%V12)
+        ##################
 
-      beta3[b,m]=rnorm(1,meannew,varnew)
-      dn=log(dnorm(beta3[b,m],meannew,varnew))
-      ###density old
-      do=log(dnorm(thetab[m],meannew,varnew))
+        beta3[b,m]=rnorm(1,meannew,varnew)
+        dn=log(dnorm(beta3[b,m],meannew,varnew))
+        ###density old
+        do=log(dnorm(thetab[m],meannew,varnew))
 
 
 
-      Likeo=LK3(Y1,Y2,I1,I2,thetab)
+        Likeo=LK3(Y1,Y2,I1,I2,thetab)
 
-      Liken=LK3(Y1,Y2,I1,I2,beta3[b,])
+        Liken=LK3(Y1,Y2,I1,I2,beta3[b,])
 
-      alpha=Liken-Likeo+dn-do
-      U=log(runif(1,0,1))
+        alpha=Liken-Likeo+dn-do
+        U=log(runif(1,0,1))
 
-      if(U>alpha){
-        Indcond3[b,m]=0
-        beta3[b,]=thetab
-      }else{
-        Indcond3[b,m]=1
+        if(U>alpha){
+          Indcond3[b,m]=0
+          beta3[b,]=thetab
+        }else{
+          Indcond3[b,m]=1
+        }
+
+      }
+
+    }else{
+
+      for(m in 1:p3){
+
+
+        thetab=beta3[b,]
+        meannew = 0
+        varnew = sqrt(Sigma3[m,m])
+        ##################
+
+        beta3[b,m]=rnorm(1,meannew,varnew)
+        dn=log(dnorm(beta3[b,m],meannew,varnew))
+        ###density old
+        do=log(dnorm(thetab[m],meannew,varnew))
+
+
+
+        Likeo=LK3(Y1,Y2,I1,I2,thetab)
+
+        Liken=LK3(Y1,Y2,I1,I2,beta3[b,])
+
+        alpha=Liken-Likeo+dn-do
+        U=log(runif(1,0,1))
+
+        if(U>alpha){
+          Indcond3[b,m]=0
+          beta3[b,]=thetab
+        }else{
+          Indcond3[b,m]=1
+        }
+
       }
 
     }
 
 
+    Like[b]=LK3(Y1,Y2,I1,I2,beta3[b,])+LK2(Y1,Y2,I1,I2,beta2[b,])+LK1(Y1,Y2,I1,I2,beta1[b,])
 
     ###End
   }
+
 
 
   cat("MCMC is finished, returning posterior quantities
@@ -852,10 +978,17 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
 
 
+  if(inc>0){
   BETA1[,c(eta1,Include)]=beta1
   BETA2[,c(eta2,Include)]=beta2
   BETA3[,c(eta3,Include)]=beta3
+  }else{
 
+    BETA1[,eta1]=beta1
+    BETA2[,eta2]=beta2
+    BETA3[,eta3]=beta3
+
+}
 
 
   Path1= paste0(Path,"/beta1.txt")
@@ -876,6 +1009,9 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
 
 
   haz1=colMeans(beta1>0)
+
+
+
   haz2=colMeans(beta2>0)
   haz3=colMeans(beta3>0)
 
@@ -884,10 +1020,16 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   HAZ3=HAZ1
 
 
+  if(inc>0){
   HAZ1[c(eta1,Include)]=haz1
   HAZ2[c(eta2,Include)]=haz2
   HAZ3[c(eta3,Include)]=haz3
+  }else{
+    HAZ1[eta1]=haz1
+    HAZ2[eta2]=haz2
+    HAZ3[eta3]=haz3
 
+}
 
 
 
@@ -958,6 +1100,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   QU2=MED1
   QU3=MED1
 
+  if(inc>0){
   MED1[c(eta1,Include)]=med1
   MED2[c(eta2,Include)]=med2
   MED3[c(eta3,Include)]=med3
@@ -967,10 +1110,28 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   QL2[c(eta2,Include)]=ql2
   QL3[c(eta3,Include)]=ql3
 
-
   QU1[c(eta1,Include)]=qu1
   QU2[c(eta2,Include)]=qu2
   QU3[c(eta3,Include)]=qu3
+
+  }else{
+
+    MED1[eta1]=med1
+    MED2[eta2]=med2
+    MED3[eta3]=med3
+
+
+    QL1[eta1]=ql1
+    QL2[eta2]=ql2
+    QL3[eta3]=ql3
+
+
+    QU1[eta1]=qu1
+    QU2[eta2]=qu2
+    QU3[eta3]=qu3
+}
+
+
 
 
 

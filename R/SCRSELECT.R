@@ -33,6 +33,7 @@
 #'
 #' @examples
 #' ####Randomly Generate Semicompeting Risks Data
+#' set.seed(1)
 #' ####Generates random patient time, indicator and covariates.
 #' n=100
 #' Y1=runif(n,0,100)
@@ -390,11 +391,11 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
       for(k in 1:G2){
 
 
-        Del=pmax(0,pmin(Y1,s2[k+1])-s2[k])
+        Del=pmax(0,pmin(Y2[I1==0],s2[k+1])-s2[k])
 
 
 
-        LOGBH=LOGBH-sum(gam*Del*exp(lam2[k])*exp(et1))
+        LOGBH=LOGBH-sum(gam[I1==0]*Del*exp(lam2[k])*exp(et1[I1==0]))
 
 
         zu=Y1<=s2[k+1]
@@ -417,11 +418,11 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
       for(k in 1:G3){
 
 
-        Del=pmax(0,pmin(Y2-Y1,s3[k+1])-s3[k])
+        Del=pmax(0,pmin(Y2[I1==1]-Y1[I1==1],s3[k+1])-s3[k])
 
 
 
-        LOGBH=LOGBH-sum(gam*Del*exp(lam3[k])*exp(et1))
+        LOGBH=LOGBH-sum(gam[I1==1]*Del*exp(lam3[k])*exp(et1[I1==1]))
 
         zu=Y2-Y1<=s3[k+1]
         zl=Y2-Y1>s3[k]
@@ -473,11 +474,11 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
       for(k in 1:G2){
 
 
-        Del=pmax(0,pmin(Y1,s2[k+1])-s2[k])
+        Del=pmax(0,pmin(Y2[I1==0],s2[k+1])-s2[k])
 
 
 
-        LOGBH=LOGBH-sum(gam*Del*exp(lam2[k])*exp(et1))
+        LOGBH=LOGBH-sum(gam[I1==0]*Del*exp(lam2[k])*exp(et1[I1==0]))
 
       }
 
@@ -498,11 +499,11 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
       for(k in 1:G3){
 
 
-        Del=pmax(0,pmin(Y2-Y1,s3[k+1])-s3[k])
+        Del=pmax(0,pmin(Y2[I1==1]-Y1[I1==1],s3[k+1])-s3[k])
 
 
 
-        LOGBH=LOGBH-sum(gam*Del*exp(lam3[k])*exp(et1))
+        LOGBH=LOGBH-sum(gam[I1==1]*Del*exp(lam3[k])*exp(et1[I1==1]))
 
       }
 
