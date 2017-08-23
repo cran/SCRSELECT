@@ -388,14 +388,17 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
       LOGBH=0
       et1=X%*%Beta2
 
+      Y=Y1
+      Y[I1==0]=Y2[I1==0]
+
       for(k in 1:G2){
 
 
-        Del=pmax(0,pmin(Y2[I1==0],s2[k+1])-s2[k])
+        Del=pmax(0,pmin(Y,s2[k+1])-s2[k])
 
 
 
-        LOGBH=LOGBH-sum(gam[I1==0]*Del*exp(lam2[k])*exp(et1[I1==0]))
+        LOGBH=LOGBH-sum(gam*Del*exp(lam2[k])*exp(et1))
 
 
         zu=Y1<=s2[k+1]
@@ -471,14 +474,18 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
       LOGBH=0
       et1=X%*%Beta2
 
+      Y=Y1
+      Y[I1==0]=Y2[I1==0]
+
+
       for(k in 1:G2){
 
 
-        Del=pmax(0,pmin(Y2[I1==0],s2[k+1])-s2[k])
+        Del=pmax(0,pmin(Y,s2[k+1])-s2[k])
 
 
 
-        LOGBH=LOGBH-sum(gam[I1==0]*Del*exp(lam2[k])*exp(et1[I1==0]))
+        LOGBH=LOGBH-sum(gam*Del*exp(lam2[k])*exp(et1))
 
       }
 
@@ -545,6 +552,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
 
     phifun=function(Y1,Y2,I1,I2,B1,B2,B3,S1,S2,S3,Lam1,Lam2,Lam3,Ep,X){
+      Ep=1/Ep
       et1=exp(X%*%B1)
       et2=exp(X%*%B2)
       et3=exp(X%*%B3)
@@ -559,11 +567,16 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
 
           for(m in 1:G1){delta1[m]=max(0,min(Y1[i],S1[m+1])-S1[m])}
-          for(m in 1:G2){delta2[m]=max(0,min(Y1[i],S2[m+1])-S2[m])}
+          for(m in 1:G2){delta2[m]=max(0,min(Y2[i],S2[m+1])-S2[m])}
 
 
-          phi[i]=et1[i]*(t(exp(Lam1))%*%as.matrix(delta1)) +
-            et2[i]*(t(exp(Lam2))%*%as.matrix(delta2))+Ep}
+          phi[i]=et1[i]*(t(exp(Lam1))%*%as.matrix(delta1)) + et2[i]*(t(exp(Lam2))%*%as.matrix(delta2))+Ep
+
+        }
+
+
+
+
         ###Case2###
         if(I1[i]==1 & I2[i]==0){
           delta1=rep(0,G1)
@@ -586,10 +599,9 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           delta2=rep(0,G2)
 
           for(m in 1:G1){delta1[m]=max(0,min(Y1[i],S1[m+1])-S1[m])}
-          for(m in 1:G2){delta2[m]=max(0,min(Y1[i],S2[m+1])-S2[m])}
+          for(m in 1:G2){delta2[m]=max(0,min(Y2[i],S2[m+1])-S2[m])}
 
-          phi[i]=et1[i]*(t(exp(Lam1))%*%as.matrix(delta1)) +
-            et2[i]*(t(exp(Lam2))%*%as.matrix(delta2))+Ep
+          phi[i]=et1[i]*(t(exp(Lam1))%*%as.matrix(delta1)) + et2[i]*(t(exp(Lam2))%*%as.matrix(delta2))+Ep
         }
         ###Case 4###
         if(I1[i]==1 & I2[i]==1){
@@ -607,7 +619,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           In2[m]=Y2[i]<=S3[m+1]
           }
           for(m in 1:G1){delta1[m]=max(0,min(Y1[i],S1[m+1])-S1[m])}
-          for(m in 1:G2){delta2[m]=max(0,min(Y1[i],S2[m+1])-S2[m])}
+          for(m in 1:G2){delta2[m]=max(0,min(Y2[i],S2[m+1])-S2[m])}
 
 
           delta3=delta3*In3*In2
@@ -619,8 +631,6 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
       }
       return(phi)
     }
-
-
 
 
     if(inc>1){
@@ -2269,7 +2279,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
                     L1,L2,L3,epsilon[b],X)
         ##Sample
         for(i in 1:n){
-          gam[b,i]=rgamma(1,epsilon[b]+I1[i]+I2[i],phi1[i])
+          gam[b,i]=rgamma(1,1/epsilon[b]+I1[i]+I2[i],rate=phi1[i])
         }
 
 
@@ -2343,7 +2353,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam1[b]=rnorm(1,(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%L1)/(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%as.matrix(rep(1,J1+1))),sqrt(Siglam1[b-1]/(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%as.matrix(rep(1,J1+1)))))
 
 
-          Siglam1[b]=1/rgamma(1,a1+(J1+1)/2,b1+.5*(t(as.matrix(rep(Mulam1[b],J1+1))-L1)%*%solve(SigLam1)%*%(as.matrix(rep(Mulam1[b],J1+1))-L1)))
+          Siglam1[b]=1/rgamma(1,a1+(J1+1)/2,rate=b1+.5*(t(as.matrix(rep(Mulam1[b],J1+1))-L1)%*%solve(SigLam1)%*%(as.matrix(rep(Mulam1[b],J1+1))-L1)))
 
 
           ##Siglam
@@ -2356,7 +2366,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam1[b]=rnorm(1,lam1[b-1,1],sqrt(Siglam1[b-1]))
 
 
-          Siglam1[b]=1/rgamma(1,a1+1/2,b1+.5*(Mulam1[b]-lam1[b-1,1])^2)
+          Siglam1[b]=1/rgamma(1,a1+1/2,rate=b1+.5*(Mulam1[b]-lam1[b-1,1])^2)
 
 
 
@@ -2488,7 +2498,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam2[b]=rnorm(1,(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%L2)/(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%as.matrix(rep(1,J2+1))),sqrt(Siglam2[b-1]/(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%as.matrix(rep(1,J2+1)))))
 
 
-          Siglam2[b]=1/rgamma(1,a2+(J2+1)/2,b2+.5*(t(as.matrix(rep(Mulam2[b],J2+1))-L2)%*%solve(SigLam2)%*%(as.matrix(rep(Mulam2[b],J2+1))-L2)))
+          Siglam2[b]=1/rgamma(1,a2+(J2+1)/2,rate=b2+.5*(t(as.matrix(rep(Mulam2[b],J2+1))-L2)%*%solve(SigLam2)%*%(as.matrix(rep(Mulam2[b],J2+1))-L2)))
 
 
           ##Siglam
@@ -2500,7 +2510,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
           Mulam2[b]=rnorm(1,lam2[b-1,1],sqrt(Siglam2[b-1]))
 
-          Siglam2[b]=1/rgamma(1,a2+1/2,b2+.5*(Mulam2[b]-lam2[b-1,1])^2)
+          Siglam2[b]=1/rgamma(1,a2+1/2,rate=b2+.5*(Mulam2[b]-lam2[b-1,1])^2)
 
 
 
@@ -2644,7 +2654,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam3[b]=rnorm(1,(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%L3)/(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%as.matrix(rep(1,J3+1))),sqrt(Siglam3[b-1]/(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%as.matrix(rep(1,J3+1)))))
           ##Siglam
 
-          Siglam3[b]=1/rgamma(1,a3+(J3+1)/2,b3+.5*(t(as.matrix(rep(Mulam3[b],J3+1))-L3)%*%solve(SigLam3)%*%(as.matrix(rep(Mulam3[b],J3+1))-L3)))
+          Siglam3[b]=1/rgamma(1,a3+(J3+1)/2,rate=b3+.5*(t(as.matrix(rep(Mulam3[b],J3+1))-L3)%*%solve(SigLam3)%*%(as.matrix(rep(Mulam3[b],J3+1))-L3)))
 
 
         }else{
@@ -2653,7 +2663,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
           Mulam3[b]=rnorm(1,lam3[b-1,1],sqrt(Siglam3[b-1]))
 
-          Siglam3[b]=1/rgamma(1,a3+1/2,b3+.5*(Mulam3[b]-lam3[b-1,1])^2)
+          Siglam3[b]=1/rgamma(1,a3+1/2,rate=b3+.5*(Mulam3[b]-lam3[b-1,1])^2)
 
 
 
@@ -5405,7 +5415,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
                     L1,L2,L3,epsilon[b],X)
         ##Sample
         for(i in 1:n){
-          gam[b,i]=rgamma(1,epsilon[b]+I1[i]+I2[i],phi1[i])
+          gam[b,i]=rgamma(1,1/epsilon[b]+I1[i]+I2[i],rate=phi1[i])
         }
 
 
@@ -5479,7 +5489,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam1[b]=rnorm(1,(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%L1)/(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%as.matrix(rep(1,J1+1))),sqrt(Siglam1[b-1]/(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%as.matrix(rep(1,J1+1)))))
 
 
-          Siglam1[b]=1/rgamma(1,a1+(J1+1)/2,b1+.5*(t(as.matrix(rep(Mulam1[b],J1+1))-L1)%*%solve(SigLam1)%*%(as.matrix(rep(Mulam1[b],J1+1))-L1)))
+          Siglam1[b]=1/rgamma(1,a1+(J1+1)/2,rate=b1+.5*(t(as.matrix(rep(Mulam1[b],J1+1))-L1)%*%solve(SigLam1)%*%(as.matrix(rep(Mulam1[b],J1+1))-L1)))
 
 
           ##Siglam
@@ -5492,7 +5502,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam1[b]=rnorm(1,lam1[b-1,1],sqrt(Siglam1[b-1]))
 
 
-          Siglam1[b]=1/rgamma(1,a1+1/2,b1+.5*(Mulam1[b]-lam1[b-1,1])^2)
+          Siglam1[b]=1/rgamma(1,a1+1/2,rate=b1+.5*(Mulam1[b]-lam1[b-1,1])^2)
 
 
 
@@ -5624,7 +5634,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam2[b]=rnorm(1,(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%L2)/(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%as.matrix(rep(1,J2+1))),sqrt(Siglam2[b-1]/(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%as.matrix(rep(1,J2+1)))))
 
 
-          Siglam2[b]=1/rgamma(1,a2+(J2+1)/2,b2+.5*(t(as.matrix(rep(Mulam2[b],J2+1))-L2)%*%solve(SigLam2)%*%(as.matrix(rep(Mulam2[b],J2+1))-L2)))
+          Siglam2[b]=1/rgamma(1,a2+(J2+1)/2,rate=b2+.5*(t(as.matrix(rep(Mulam2[b],J2+1))-L2)%*%solve(SigLam2)%*%(as.matrix(rep(Mulam2[b],J2+1))-L2)))
 
 
           ##Siglam
@@ -5636,7 +5646,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
           Mulam2[b]=rnorm(1,lam2[b-1,1],sqrt(Siglam2[b-1]))
 
-          Siglam2[b]=1/rgamma(1,a2+1/2,b2+.5*(Mulam2[b]-lam2[b-1,1])^2)
+          Siglam2[b]=1/rgamma(1,a2+1/2,rate=b2+.5*(Mulam2[b]-lam2[b-1,1])^2)
 
 
 
@@ -5780,7 +5790,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam3[b]=rnorm(1,(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%L3)/(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%as.matrix(rep(1,J3+1))),sqrt(Siglam3[b-1]/(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%as.matrix(rep(1,J3+1)))))
           ##Siglam
 
-          Siglam3[b]=1/rgamma(1,a3+(J3+1)/2,b3+.5*(t(as.matrix(rep(Mulam3[b],J3+1))-L3)%*%solve(SigLam3)%*%(as.matrix(rep(Mulam3[b],J3+1))-L3)))
+          Siglam3[b]=1/rgamma(1,a3+(J3+1)/2,rate=b3+.5*(t(as.matrix(rep(Mulam3[b],J3+1))-L3)%*%solve(SigLam3)%*%(as.matrix(rep(Mulam3[b],J3+1))-L3)))
 
 
         }else{
@@ -5789,7 +5799,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
           Mulam3[b]=rnorm(1,lam3[b-1,1],sqrt(Siglam3[b-1]))
 
-          Siglam3[b]=1/rgamma(1,a3+1/2,b3+.5*(Mulam3[b]-lam3[b-1,1])^2)
+          Siglam3[b]=1/rgamma(1,a3+1/2,rate=b3+.5*(Mulam3[b]-lam3[b-1,1])^2)
 
 
 
@@ -8640,7 +8650,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
                     L1,L2,L3,epsilon[b],X)
         ##Sample
         for(i in 1:n){
-          gam[b,i]=rgamma(1,epsilon[b]+I1[i]+I2[i],phi1[i])
+          gam[b,i]=rgamma(1,1/epsilon[b]+I1[i]+I2[i],rate=phi1[i])
         }
 
 
@@ -8714,7 +8724,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam1[b]=rnorm(1,(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%L1)/(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%as.matrix(rep(1,J1+1))),sqrt(Siglam1[b-1]/(t(as.matrix(rep(1,J1+1)))%*%solve(SigLam1)%*%as.matrix(rep(1,J1+1)))))
 
 
-          Siglam1[b]=1/rgamma(1,a1+(J1+1)/2,b1+.5*(t(as.matrix(rep(Mulam1[b],J1+1))-L1)%*%solve(SigLam1)%*%(as.matrix(rep(Mulam1[b],J1+1))-L1)))
+          Siglam1[b]=1/rgamma(1,a1+(J1+1)/2,rate=b1+.5*(t(as.matrix(rep(Mulam1[b],J1+1))-L1)%*%solve(SigLam1)%*%(as.matrix(rep(Mulam1[b],J1+1))-L1)))
 
 
           ##Siglam
@@ -8727,7 +8737,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam1[b]=rnorm(1,lam1[b-1,1],sqrt(Siglam1[b-1]))
 
 
-          Siglam1[b]=1/rgamma(1,a1+1/2,b1+.5*(Mulam1[b]-lam1[b-1,1])^2)
+          Siglam1[b]=1/rgamma(1,a1+1/2,rate=b1+.5*(Mulam1[b]-lam1[b-1,1])^2)
 
 
 
@@ -8859,7 +8869,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam2[b]=rnorm(1,(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%L2)/(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%as.matrix(rep(1,J2+1))),sqrt(Siglam2[b-1]/(t(as.matrix(rep(1,J2+1)))%*%solve(SigLam2)%*%as.matrix(rep(1,J2+1)))))
 
 
-          Siglam2[b]=1/rgamma(1,a2+(J2+1)/2,b2+.5*(t(as.matrix(rep(Mulam2[b],J2+1))-L2)%*%solve(SigLam2)%*%(as.matrix(rep(Mulam2[b],J2+1))-L2)))
+          Siglam2[b]=1/rgamma(1,a2+(J2+1)/2,rate=b2+.5*(t(as.matrix(rep(Mulam2[b],J2+1))-L2)%*%solve(SigLam2)%*%(as.matrix(rep(Mulam2[b],J2+1))-L2)))
 
 
           ##Siglam
@@ -8871,7 +8881,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
           Mulam2[b]=rnorm(1,lam2[b-1,1],sqrt(Siglam2[b-1]))
 
-          Siglam2[b]=1/rgamma(1,a2+1/2,b2+.5*(Mulam2[b]-lam2[b-1,1])^2)
+          Siglam2[b]=1/rgamma(1,a2+1/2,rate=b2+.5*(Mulam2[b]-lam2[b-1,1])^2)
 
 
 
@@ -9015,7 +9025,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
           Mulam3[b]=rnorm(1,(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%L3)/(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%as.matrix(rep(1,J3+1))),sqrt(Siglam3[b-1]/(t(as.matrix(rep(1,J3+1)))%*%solve(SigLam3)%*%as.matrix(rep(1,J3+1)))))
           ##Siglam
 
-          Siglam3[b]=1/rgamma(1,a3+(J3+1)/2,b3+.5*(t(as.matrix(rep(Mulam3[b],J3+1))-L3)%*%solve(SigLam3)%*%(as.matrix(rep(Mulam3[b],J3+1))-L3)))
+          Siglam3[b]=1/rgamma(1,a3+(J3+1)/2,rate=b3+.5*(t(as.matrix(rep(Mulam3[b],J3+1))-L3)%*%solve(SigLam3)%*%(as.matrix(rep(Mulam3[b],J3+1))-L3)))
 
 
         }else{
@@ -9024,7 +9034,7 @@ SCRSELECT=function(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3star
 
           Mulam3[b]=rnorm(1,lam3[b-1,1],sqrt(Siglam3[b-1]))
 
-          Siglam3[b]=1/rgamma(1,a3+1/2,b3+.5*(Mulam3[b]-lam3[b-1,1])^2)
+          Siglam3[b]=1/rgamma(1,a3+1/2,rate=b3+.5*(Mulam3[b]-lam3[b-1,1])^2)
 
 
 

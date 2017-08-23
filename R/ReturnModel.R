@@ -119,7 +119,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   beta1start=rep(1,ncol(X))
   beta2start=beta1start
   beta3start=beta1start
-  z1=SCRSELECTRUN(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3start,B,inc,burn)
+  z1=SCRSELECTRETURN(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3start,B,inc,burn)
 
   cat("
 
@@ -130,7 +130,7 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   beta1start=c(rep(0,ncol(X)-inc),rep(-1,inc))
   beta2start=beta1start
   beta3start=beta1start
-  z2=SCRSELECTRUN(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3start,B,inc,burn)
+  z2=SCRSELECTRETURN(Y1,I1,Y2,I2,X,hyperparameters,beta1start,beta2start,beta3start,B,inc,burn)
 
   cat("
 
@@ -280,6 +280,18 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
   lam3=Z[[10]]
 
   B=BDIC
+
+  cat("Baseline Hazard Quantities used for DIC-TAUG
+      ")
+  cat("Haz1: S, lam")
+  print(s1)
+  print(lam1)
+  cat("Haz2: S, lam")
+  print(s2)
+  print(lam2)
+  cat("Haz3: S, lam")
+  print(s3)
+  print(lam3)
 
   cat("
 
@@ -650,10 +662,14 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
     et1=COV2%*%Beta2
     LOGBH=LOGBH+sum(I2*(1-I1)*et1)
 
+    Y=Y1
+    Y[I1==0]=Y2[I1==0]
+
+
     for(k in 1:G2){
 
 
-      Del=pmax(0,pmin(Y1,s2[k+1])-s2[k])
+      Del=pmax(0,pmin(Y,s2[k+1])-s2[k])
 
 
 
@@ -681,12 +697,12 @@ ReturnModel=function(Y1,I1,Y2,I2,X,hyperparameters,inc,c,BSVSS,BDIC,Path){
     for(k in 1:G3){
 
 
-      Del=pmax(0,pmin(Y2-Y1,s3[k+1])-s3[k])
+      Del=pmax(0,pmin(Y2[I1==1]-Y1[I1==1],s3[k+1])-s3[k])
 
 
 
 
-      LOGBH=LOGBH-sum(gam*Del*exp(lam3[k])*exp(et1))
+      LOGBH=LOGBH-sum(gam[I1==1]*Del*exp(lam3[k])*exp(et1[I1==1]))
 
     }
 

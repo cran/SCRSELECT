@@ -3,7 +3,7 @@
 export(DICTAUG)
 export(ReturnModel)
 export(SCRSELECT)
-export(SCRSELECTRUN)
+export(SCRSELECTRETURN)
 importFrom(graphics,par)
 importFrom(graphics,plot)
 importFrom(mvtnorm,dmvnorm)

@@ -184,11 +184,31 @@ DICTAUG=function(PCT1,PCT2,PCT3,COV,Y1,Y2,I1,I2,s1,lam1,s2,lam2,s3,lam3,gam,c,B,
 
               ### Sets up Storage Matrices ##
               ##Hundred Thousand
-
+if(p1>0){
               ###Beta/Eta###
               beta1=matrix(rep(0,B*(p1)),nrow=B)
+              Indcond1=matrix(rep(0,p1*B),nrow=B)
+              Sigma1=c*solve(t(COV1)%*%COV1)
+              Indmix1=rep(0,B)
+}
+              ##
+
+ if(p2>0){
               beta2=matrix(rep(0,B*(p2)),nrow=B)
+              Indcond2=matrix(rep(0,p2*B),nrow=B)
+              Sigma2=c*solve(t(COV2)%*%COV2)
+              Indmix2=rep(0,B)
+ }
+
+              ##
+
+  if(p3>0){
               beta3=matrix(rep(0,B*(p3)),nrow=B)
+              Indcond3=matrix(rep(0,p3*B),nrow=B)
+              Sigma3=c*solve(t(COV3)%*%COV3)
+              Indmix3=rep(0,B)
+
+  }
 
 
               n=length(Y1)
@@ -196,18 +216,9 @@ DICTAUG=function(PCT1,PCT2,PCT3,COV,Y1,Y2,I1,I2,s1,lam1,s2,lam2,s3,lam3,gam,c,B,
 
 
 
-              Indcond1=matrix(rep(0,p1*B),nrow=B)
-              Indcond2=matrix(rep(0,p2*B),nrow=B)
-              Indcond3=matrix(rep(0,p3*B),nrow=B)
 
 
-              Sigma1=c*solve(t(COV1)%*%COV1)
-              Sigma2=c*solve(t(COV2)%*%COV2)
-              Sigma3=c*solve(t(COV3)%*%COV3)
 
-              Indmix1=rep(0,B)
-              Indmix2=rep(0,B)
-              Indmix3=rep(0,B)
 
 
 
@@ -256,15 +267,19 @@ DICTAUG=function(PCT1,PCT2,PCT3,COV,Y1,Y2,I1,I2,s1,lam1,s2,lam2,s3,lam3,gam,c,B,
                 et1=COV2%*%Beta2
                 LOGBH=LOGBH+sum(I2*(1-I1)*et1)
 
+                Y=Y1
+                Y[I1==0]=Y2[I1==0]
+
+
                 for(k in 1:G2){
 
 
-                  Del=pmax(0,pmin(Y2[I1==0],s2[k+1])-s2[k])
+                  Del=pmax(0,pmin(Y,s2[k+1])-s2[k])
 
 
 
 
-                  LOGBH=LOGBH-sum(gam[I1==0]*Del*exp(lam2[k])*exp(et1[I1==0]))
+                  LOGBH=LOGBH-sum(gam*Del*exp(lam2[k])*exp(et1))
 
                 }
 
@@ -312,7 +327,9 @@ DICTAUG=function(PCT1,PCT2,PCT3,COV,Y1,Y2,I1,I2,s1,lam1,s2,lam2,s3,lam3,gam,c,B,
 
                 ##Print iteration
 
-                beta1[b,]=beta1[b-1,]
+
+                if(p1>0){
+                  beta1[b,]=beta1[b-1,]
 
                 if(p1>1){
 
@@ -392,6 +409,8 @@ DICTAUG=function(PCT1,PCT2,PCT3,COV,Y1,Y2,I1,I2,s1,lam1,s2,lam2,s3,lam3,gam,c,B,
 
 
 
+
+                }
 
                 }
                 iter="haz2"
@@ -706,48 +725,46 @@ if(p1>1){
                 }
 
 
+                sum1=sum(eta1)
+                sum2=sum(eta2)
+                sum3=sum(eta3)
+
+                if((sum1+sum2+sum3)>0){
+
+                if(sum1>0){
                 eta1=eta1[!(eta1==0)]
-                eta2=eta2[!(eta2==0)]
-                eta3=eta3[!(eta3==0)]
-
-
-
-
-                ###Covariate Matrices
                 COV1=as.matrix(COV[,eta1])
-                COV2=as.matrix(COV[,eta2])
-                COV3=as.matrix(COV[,eta3])
-
-
                 p1=sum(E1)
+                ###Beta/Eta###
+                beta1=matrix(rep(0,B*(p1)),nrow=B)
+                Indcond1=matrix(rep(0,p1*B),nrow=B)
+                Sigma1=c*solve(t(COV1)%*%COV1)
+                }
+                if(sum2>0){
+                eta2=eta2[!(eta2==0)]
+                COV2=as.matrix(COV[,eta2])
                 p2=sum(E2)
+                beta2=matrix(rep(0,B*(p2)),nrow=B)
+                Indcond2=matrix(rep(0,p2*B),nrow=B)
+                Sigma2=c*solve(t(COV2)%*%COV2)
+                }
+
+                ##
+                if(sum3>0){
+                eta3=eta3[!(eta3==0)]
+                COV3=as.matrix(COV[,eta3])
                 p3=sum(E3)
-
-
-
+                beta3=matrix(rep(0,B*(p3)),nrow=B)
+                Indcond3=matrix(rep(0,p3*B),nrow=B)
+                Sigma3=c*solve(t(COV3)%*%COV3)
+                }
 
                 ### Sets up Storage Matrices ##
                 ##Hundred Thousand
 
-                ###Beta/Eta###
-                beta1=matrix(rep(0,B*(p1)),nrow=B)
-                beta2=matrix(rep(0,B*(p2)),nrow=B)
-                beta3=matrix(rep(0,B*(p3)),nrow=B)
-
-
                 n=length(Y1)
                 Like=rep(0,B)
 
-
-
-                Indcond1=matrix(rep(0,p1*B),nrow=B)
-                Indcond2=matrix(rep(0,p2*B),nrow=B)
-                Indcond3=matrix(rep(0,p3*B),nrow=B)
-
-
-                Sigma1=c*solve(t(COV1)%*%COV1)
-                Sigma2=c*solve(t(COV2)%*%COV2)
-                Sigma3=c*solve(t(COV3)%*%COV3)
 
                 Indmix1=rep(0,B)
                 Indmix2=rep(0,B)
@@ -1194,7 +1211,10 @@ A=A+LK3(Y1,Y2,I1,I2,mbeta3)
 
                 DICMAT[h,l]=DIC
 
+
+
               }
+                }
 
             }
           }
